@@ -112,3 +112,30 @@ INSERT INTO tcabs.Enrolment VALUES (1, 3, 1);
 INSERT INTO tcabs.Functions VALUES (1, "registerUser");
 
 INSERT INTO tcabs.Permission VALUES (1, 1, 1);
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `register_user`(IN `_fName` VARCHAR(255), IN `_lName` VARCHAR(255), IN `_gender` VARCHAR(1), IN `_pNum` VARCHAR(255), IN `_email` VARCHAR(255), IN `_pwd` VARCHAR(255), IN `_is_admin` INT(1), IN `_is_convenor` INT(1), IN `_is_supervisor` INT(1), IN `_is_student` INT(1), OUT `_userID` INT(1))
+    NO SQL
+    COMMENT 'Register into User Table'
+begin
+if _fName = "" or _lName = ""  or _gender = ""  or _pNum = ""  or _email = ""  or _pwd = "" THEN
+signal sqlstate '99999' set message_text = 'Please enter all fields!';
+
+else
+
+insert into tcabs.users(users.userID, users.fName, users.lName, users.gender, users.pNum, users.email, users.pwd) VALUES (NULL, _fName, _lName, _gender, _pNum, _email, _pwd);
+
+set _userID = LAST_INSERT_ID();
+
+IF _is_admin = 1 THEN INSERT INTO tcabs.useruserrole(useruserrole.uurID, useruserrole.userID, useruserrole.userRoleID) values (NULL, _userID, 1);
+END IF;
+IF _is_convenor = 1 THEN INSERT INTO tcabs.useruserrole(useruserrole.uurID, useruserrole.userID, useruserrole.userRoleID) values (NULL, _userID, 2);
+END IF;
+IF _is_supervisor = 1 THEN INSERT INTO tcabs.useruserrole(useruserrole.uurID, useruserrole.userID, useruserrole.userRoleID) values (NULL, _userID, 3);
+END IF;
+IF _is_student = 1 THEN INSERT INTO tcabs.useruserrole(useruserrole.uurID, useruserrole.userID, useruserrole.userRoleID) values (NULL, _userID, 4);
+END IF;
+end if;
+
+end$$
+DELIMITER ;
