@@ -17,24 +17,27 @@
 				$adminArr = array(
 					"registerUser.php" => "Register Users",
 					"registerUnits.php" => "Register Units",
+					"registerStudents.php" => "Register Students",
 					"enrolStudents.php" => "Enrol Students"
 				);
 
 				$convenorArr = array(
 					"registerTeam.php" => "Register Team",
-					"test.php" => "Something",
-					"test.php" => "Something",
+					"registerProject.php" => "Register Project",
+					"setupRoles.php" => "Setup Roles",
+					"allocateRoles.php" => "Allocate Roles",
 				);
 
 				$supervisorArr = array(
-					"test.php" => "Something",
-					"test.php" => "Something",
-					"test.php" => "Something",
+					"supervisorMeeting.php" => "Meetings",
 				);
 
 				$studentArr = array(
-					"test.php" => "Something",
-					"test.php" => "Something",
+					"studentTasks.php" => "Tasks",
+					"studentPeerAssess.php" => "Peer Assessment",
+					"studentSupervisorMeeting.php" => "Supervisor Meetings",
+					"studentTeamMeeting.php" => "Team Meetings",
+					
 				);
 
 				$formArr = array();
@@ -54,7 +57,7 @@
 
 	  				echo "<li id='dropdown-admin' class='nav-item dropdown'>
         						<a class='nav-link dropdown-toggle' href='#' id='navbarDropdownMenuLink' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
-          						<i class='fas fa-user-secret'></i>{$userType}</a> 
+          						<i class='fas fa-chalkboard-teacher'></i>" . " " . ucfirst($userType) . "</a> 
         						<div class='dropdown-menu' aria-labelledby='navbarDropdownMenuLink'>";
 
 						foreach($formArr as $formPath => $value) {
