@@ -2372,6 +2372,68 @@ create or replace Procedure TCABSTEACHINGPERIODDeletePeriod(in EnteredTerm varch
 	END //
  DELIMITER ;
 
+  DELIMITER //
+create or replace Procedure TCABSTASKDeleteTask(in EnteredTaskID int, in EnteredProjectName varchar(255),in TeamName varchar(255), in SupervisorEmail varchar(255), in SelectedUnitCode varchar(255), in SelectedOfferingterm varchar(255), in SelectedOfferingyear varchar(255))
+	BEGIN
+        call TCABSTASKSGetTaskID(EnteredTaskID,EnteredProjectName,TeamName,SupervisorEmail,SelectedUnitCode,SelectedOfferingterm,SelectedOfferingyear,@ValuetaskID,@ValueTeamProjectID);
+		
+		if (select count(*) from Task where ProjectTaskID = @ValuetaskID AND TeamProjectID = @ValueTeamProjectID) >= 0 then 
+			DELETE FROM Task
+			where ProjectTaskID = @ValuetaskID
+			AND TeamProjectID = @ValueTeamProjectID;
+		else
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "There is no Task with the entered Task";
+		end if;
+	END //
+ DELIMITER ;
+ 
+  DELIMITER //
+create or replace Procedure TCABSPROJECTDeleteProject(in EnteredProjectName varchar(255), in EnteredProjectDescription text)
+	BEGIN
+        if (char_length(EnteredProjectName) < 1) then
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "no Project name entered";
+        end if;
+		
+		if ((select count(*) from OfferingProject where ProjectName = EnteredProjectName) >= 1) then
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Project already having Project Offering cannot be deleted";
+        end if;
+		
+		if ((select count(*) from TeamProjects where ProjectName = EnteredProjectName) >= 1) then
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Project already having Team Projects cannot be deleted";
+        end if;
+		
+		if (select count(*) from Project where ProjectName = EnteredProjectName) >= 0 then 
+			DELETE FROM Project
+			where ProjectName = EnteredProjectName;
+		else
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "There is no Project with the entered Project";
+		end if;
+	END //
+ DELIMITER ;
+ 
+  DELIMITER //
+create or replace Procedure TCABSOFFERINGPROJECTProDeletejectOffering(in EnteredProjectName varchar(255), in SelectedUnitCode varchar(255), in SelectedOfferingterm varchar(255), in SelectedOfferingyear varchar(255))
+	BEGIN
+		if (char_length(EnteredProjectName) < 1) then
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "no Project name entered";
+        end if;
+
+        call TCABSUNITOFFERINGGetKey(SelectedUnitCode, SelectedOfferingterm, SelectedOfferingyear, @ValuesunitOfferingID);
+		
+        if ((select count(*) from Project where ProjectName = EnteredProjectName) <> 1) then
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Entered Project Does not exist";
+        end if;
+        
+		if (select count(*) from OfferingProject WHERE UnitOfferingID = @ValuesunitOfferingID AND ProjectName = EnteredProjectName) >= 0 then 
+			DELETE FROM OfferingProject
+			WHERE UnitOfferingID = @ValuesunitOfferingID
+			AND ProjectName = EnteredProjectName;
+		else
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "There is no Project Offering with the entered Project Offering";
+		end if;
+	END //
+ DELIMITER ;
+
 -- ---------------------------------------No Procedures or Functions after this point -----------------------------------------------
 -- Functions
 -- this must run after all procedures and functions as it loads all available user functionality for security to manage
