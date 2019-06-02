@@ -12,7 +12,7 @@
 		// check if file is a csv file - exit if error
 		if($_FILES['csvFile']['type'] !== "text/csv") {
 			throw new Exception('File is not csv!!');
-		} 
+		}
 
 		$csv = Array();
 		$rowcount = 0;
@@ -55,7 +55,7 @@
 		public function getRoles($userEmail) {
 
 			// Populate the $roles array with all the roles a user has
-			$stmt = $GLOBALS['conn']->prepare("SELECT userType 
+			$stmt = $GLOBALS['conn']->prepare("SELECT userType
 							FROM UserCat WHERE email = ?");
 
 			$stmt->bind_param('s', $userEmail);
@@ -75,17 +75,17 @@
 
 		public function assignRoles($userEmail, $userRoleArr) {
 			// how to roll back if error occurs for some role
-			
+
 			// delete current roles
 			$stmt = $GLOBALS['conn']->prepare("delete from UserCat where email = ?");
 			$stmt->bind_param('s', $userEmail);
 			$stmt->execute();
-			
+
 			$stmt = $GLOBALS['conn']->prepare("call TCABSUserCatAssignUserARole(?, ?)");
 
 			foreach($userRoleArr as $userRole => $value) {
 				$stmt->bind_param('ss', $userEmail, $value);
-				
+
 				try {
 					$stmt->execute();
 				} catch(mysqli_sql_exception $e) {
@@ -103,7 +103,7 @@
 		protected function __construct() {
 			$this->permissions = array();
 		}
-		
+
 		protected function getPerms($userRoles) {
 
 			if($userRoles == NULL) {
@@ -112,13 +112,13 @@
 				$subQuery = "";
 
 				foreach($userRoles as $userType => $access) {
-					$subQuery = $subQuery . "'{$userType}', "; 
+					$subQuery = $subQuery . "'{$userType}', ";
 				}
 				$subQuery = substr($subQuery, 0, -2);
 
 				// using subquery
 				// this method wont work with prepared statement
-				$sql = "SELECT procName FROM Permission	
+				$sql = "SELECT procName FROM Permission
 								WHERE userType IN (" . $subQuery .")";
 
 				try {
@@ -214,7 +214,7 @@
 		}
 
 		public function searchUser($searchQuery) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("SELECT email FROM Users
 									WHERE email LIKE ? or fName LIKE ? or lName LIKE ?");
 			$stmt->bind_param('sss', $searchQuery, $searchQuery, $searchQuery);
@@ -280,7 +280,7 @@
 			} catch(mysqli_sql_exception $e) {
 				throw $e;
 			}
-		
+
 		}
 
 		// to add a user to a data base - updating Users and UserCat tables
@@ -314,7 +314,7 @@
 
 			$stmt->close();
 		}
-		
+
 			// to edit a user updating Users and UserCat tables
 		public function updateUser($fName, $lName, $gender, $pNum, $email, $roles) {
 
@@ -418,8 +418,8 @@
 		}
 
 		public function updateUnit($unit) {
-			
-			$stmt = $GLOBALS['conn']->prepare("UPDATE Unit 
+
+			$stmt = $GLOBALS['conn']->prepare("UPDATE Unit
 								SET unitCode = ?, unitName = ?, faculty = ?
 								WHERE unitCode = ?");
 
@@ -507,6 +507,76 @@
 			}
 		}
 
+
+
+		// get an offering based on Offering ID
+		public function getUnitOffering($uOffID) {
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM UnitOffering WHERE unitOfferingID = ?");
+			$stmt->bind_param('s', $uOffID);
+
+			try {
+				$stmt->execute();
+				$stmt->store_result();
+				$stmt->bind_result($uOffID, $unitCode, $cUserName, $term, $year, $censusDate);
+
+				if($stmt->num_rows > 0) {
+					while($stmt->fetch()) {
+						$this->offerings['uOffID'] = $uOffID;
+						$this->offerings['unitCode'] = $unitCode;
+						$this->offerings['cUserName'] = $cUserName;
+						$this->offerings['term'] = $term;
+						$this->offerings['year'] = $year;
+						$this->offerings['censusDate'] = $censusDate;
+					}
+				}
+				print_r($this->offerings);
+				$stmt->close();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+			return $this->offerings;
+		}
+
+
+		// return all Staff Offerings
+		public function getAllStaffOfferings() {
+
+			$stmt = $GLOBALS['conn']->prepare("select unit.unitCode, Offeringstaff.offeringstaffid, offeringstaff.unitofferingid, users.email, users.fName, users.lName, unit.unitName, teachingperiod.term, teachingperiod.year, unitoffering.censusDate from OfferingStaff left join users on offeringstaff.UserName = users.email left join unitoffering on OfferingStaff.UnitOfferingID = UnitOffering.UnitOfferingID left join unit on unitoffering.unitCode = unit.unitCode left join teachingperiod on unitoffering.term = teachingperiod.term and unitoffering.year = teachingperiod.year order by users.fName");
+			//$stmt->bind_param();
+
+			try {
+				$stmt->execute();
+				$stmt->store_result();
+				$stmt->bind_result($unitCode, $uOffStaffID, $uOffID, $cUserName, $fName, $lName, $unitName, $term, $year, $censusDate);
+
+				$allUnitOfferings = [];
+				$i = 0;
+				if($stmt->num_rows > 0) {
+					while($stmt->fetch()) {
+						$allUnitOfferings[$i] = array(
+						'unitCode' => $unitCode,
+						'uOffStaffID' => $uOffStaffID,
+						'uOffID' => $uOffID,
+						'cUserName' => $cUserName,
+						'fName' => $fName,
+						'lName' => $lName,
+						'unitName' => $unitName,
+						'term' => $term,
+						'year' => $year,
+						'censusDate' => $censusDate,
+					);
+					$i = $i + 1;
+					}
+				}
+				$stmt->close();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+			return $allUnitOfferings;
+		}
+
+
 		// add unit offering
 		public function addUnitOff($unitCode, $convenorEmail, $term, $year, $censusDate) {
 
@@ -545,9 +615,9 @@
 		public $unitOfferingID;
 
 		public function getAllEnrolments() {
-		
-			$stmt = $GLOBALS['conn']->prepare("SELECT E.enrolmentID, E.unitOfferingID, 
-								E.sUserName, U.unitCode, UN.unitName, U.term, U.year 
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT E.enrolmentID, E.unitOfferingID,
+								E.sUserName, U.unitCode, UN.unitName, U.term, U.year
 								FROM Enrolment E INNER JOIN UnitOffering U
 								ON U.unitOfferingID = E.unitOfferingID
 								INNER JOIN Unit UN
@@ -558,12 +628,12 @@
 				$stmt->execute();
 				$stmt->store_result();
 				$stmt->bind_result(
-					$enrolmentID, 
+					$enrolmentID,
 					$unitOfferingID,
-					$sUserName, 
-					$unitCode, 
-					$unitName, 
-					$term, 
+					$sUserName,
+					$unitCode,
+					$unitName,
+					$term,
 					$year
 				);
 
@@ -596,7 +666,7 @@
 
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABS_enrolment_add(?, ?, ?, ?)");
 			$stmt->bind_param("ssss", $userEmail, $unitCode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -628,8 +698,8 @@
 
 		public function getMembers($pTeamID) {
 
-			$stmt = $GLOBALS['conn']->prepare("SELECT TeamMemberID, EnrolmentID, TeamID 
-								FROM TeamMember 
+			$stmt = $GLOBALS['conn']->prepare("SELECT TeamMemberID, EnrolmentID, TeamID
+								FROM TeamMember
 								WHERE TeamID = ?");
 			$stmt->bind_param('s', $pTeamID);
 
@@ -661,16 +731,16 @@
 		}
 
 		public function searchMembers($searchQuery) {
-			
+
 			$searchResult = array();
 
-			$stmt = $GLOBALS['conn']->prepare("SELECT TM.TeamMemberID, TM.EnrolmentID, TM.TeamID, T.teamName, 
-						 		E.unitOfferingID, U.email, U.fName, U.lName	
+			$stmt = $GLOBALS['conn']->prepare("SELECT TM.TeamMemberID, TM.EnrolmentID, TM.TeamID, T.teamName,
+						 		E.unitOfferingID, U.email, U.fName, U.lName
 								FROM TeamMember TM INNER JOIN Team T
 								ON T.TeamID = TM.TeamID
-								INNER JOIN Enrolment E 
+								INNER JOIN Enrolment E
 								ON TM.enrolmentID = E.EnrolmentID
-								INNER JOIN Users U 
+								INNER JOIN Users U
 								ON U.email = E.sUserName
 								WHERE U.email LIKE ? or U.fName LIKE ? or U.lName LIKE ?");
 			$stmt->bind_param('sss', $searchQuery, $searchQuery, $searchQuery);
@@ -709,10 +779,10 @@
 		}
 
 		public function addTeamMember($sEmail, $tName, $supEmail, $unitCode, $term, $year) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTEAMMEMBERAddTeamMember(?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("ssssss", $sEmail, $tName, $supEmail, $unitCode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -720,12 +790,12 @@
 			}
 			$stmt->close();
 		}
-		
+
 		public function deleteTeamMember($sEmail, $tName, $supEmail, $unitCode, $term, $year) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTEAMMEMBERDeleteTeamMember(?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("ssssss", $sEmail, $tName, $supEmail, $unitCode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -742,9 +812,9 @@
 		public $projManager;
 
 		public function getTeam($pTeamID) {
-			
-			$stmt = $GLOBALS['conn']->prepare("SELECT TeamID, TeamName, OfferingStaffID, ProjectManager 
-								FROM Team 
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT TeamID, TeamName, OfferingStaffID, ProjectManager
+								FROM Team
 								WHERE TeamID = ?");
 			$stmt->bind_param('s', $pTeamID);
 
@@ -773,10 +843,9 @@
 		}
 
 		public function addTeam($tname, $supemail, $unitcode, $term, $year) {
-		
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTeamAddTeam(?, ?, ?, ?, ?)");
 			$stmt->bind_param("sssss", $tname, $supemail, $unitcode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -787,11 +856,11 @@
 
 
 		public function searchTeam($searchQuery) {
-			
+
 			$searchResult = array();
 
-			$stmt = $GLOBALS['conn']->prepare("SELECT T.TeamID, T.TeamName, 
-								T.OfferingStaffID, OF.UserName,T.projectManager, 
+			$stmt = $GLOBALS['conn']->prepare("SELECT T.TeamID, T.TeamName,
+								T.OfferingStaffID, OF.UserName,T.projectManager,
 								OF.UnitOfferingID, UO.unitCode, UO.term, UO.year
 								FROM Team T INNER JOIN OfferingStaff OF ON T.OfferingStaffID = OF.OfferingStaffID
 								INNER JOIN UnitOffering UO ON UO.unitOfferingID = OF.UnitOfferingID
@@ -800,11 +869,10 @@
 			$stmt->bind_param('ss', $searchQuery, $searchQuery);
 
 			$teams = [];
-
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($teamID, $teamName, $offeringStaffID, $uName, 
+				$stmt->bind_result($teamID, $teamName, $offeringStaffID, $uName,
 								$projManager, $uOffID, $unitCode, $term, $year);
 
 				$i = 0;
@@ -834,10 +902,10 @@
 		}
 
 		public function updateTeam($tname, $supemail, $unitcode, $term, $year, $nsup, $nname, $projman) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("ssssssss", $tname, $supemail, $unitcode, $term, $year, $nsup, $nname, $projman);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -847,10 +915,10 @@
 		}
 
 		public function deleteTeam($tname, $supemail, $unitcode, $term, $year) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTeamDeleteTeam(?, ?, ?, ?, ?)");
 			$stmt->bind_param("sssss", $tname, $supemail, $unitcode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -858,7 +926,7 @@
 			}
 			$stmt->close();
 		}
-		
+
 	}
 
 	class Project {
@@ -867,8 +935,8 @@
 
 		// get a single project object with use of project name
 		public function getProject($projName) {
-	 
-		$stmt = $GLOBALS['conn']->prepare("SELECT * FROM Project 
+
+		$stmt = $GLOBALS['conn']->prepare("SELECT * FROM Project
 							WHERE ProjectName = ?");
 		$stmt->bind_param('s', $projName);
 
@@ -896,10 +964,10 @@
 
 	// add project to database
 	 public function addProject($projName, $projDesc) {
-	 
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABS_project_add(?, ?)");
 			$stmt->bind_param("ss", $projName, $projDesc);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -910,17 +978,17 @@
 
 		// search projects return array
 		public function searchProjects($searchQuery) {
-			
+
 			$searchResult = array();
 
-			$stmt = $GLOBALS['conn']->prepare("SELECT P.projectName,  
-								P.ProjectDescription, UO.unitOffering, UO.unitCode, UO.unitName, 
+			$stmt = $GLOBALS['conn']->prepare("SELECT P.projectName,
+								P.ProjectDescription, UO.unitOffering, UO.unitCode, UO.unitName,
 								UO.term, UO.year, UO.cUserName
 								FROM Project P INNER JOIN OfferingProject O
 								ON O.ProjectName = P.ProjectName
 								INNER JOIN UnitOffering UO
 								ON UO.unitOfferingID = O.UnitOfferingID
-								WHERE P.ProjectName LIKE ? or P.ProjectID LIKE ? or UO.unitCode LIKE ?" 
+								WHERE P.ProjectName LIKE ? or P.ProjectID LIKE ? or UO.unitCode LIKE ?"
 								);
 			$stmt->bind_param('sss', $searchQuery, $searchQuery, $searchQuery);
 
@@ -928,7 +996,7 @@
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($teamID, $teamName, $offeringStaffID, $uName, 
+				$stmt->bind_result($teamID, $teamName, $offeringStaffID, $uName,
 								$projManager, $uOffID, $unitCode, $term, $year);
 
 				$i = 0;
@@ -970,7 +1038,7 @@
 			$stmt->close();
 		}
 	}
-	
+
 	class TeamProject {
 		public $tProjID;
 		public $teamID;
@@ -979,8 +1047,8 @@
 
 		// get a single team Project object with use of project name
 		public function getTeamProject($tProjID) {
-	 
-			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM TeamProjects 
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM TeamProjects
 							WHERE TeamProjectID = ?");
 			$stmt->bind_param('s', $tProjID);
 
@@ -1009,10 +1077,10 @@
 		}
 
 		public function searchTeamProject($searchQuery) {
-			
+
 			$searchResult = array();
 
-			$stmt = $GLOBALS['conn']->prepare("SELECT TP.TeamProjectID, TP.TeamID, T.TeamName, 
+			$stmt = $GLOBALS['conn']->prepare("SELECT TP.TeamProjectID, TP.TeamID, T.TeamName,
 							 	TP.ProjectName, OF.UserName, UO.unitCode, UO.term, UO.year
 								FROM TeamProjects TP INNER JOIN Team T ON TP.teamID = T.teamID
 								INNER JOIN OfferingStaff OF ON OF.OfferingStaffID = T.OfferingStaffID
@@ -1056,10 +1124,10 @@
 
 		// add project to database
 		public function addTeamProject($projName, $tName, $cUserName, $unitCode, $term, $year) {
-	 
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABS_TeamProject_Add(?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("ssssss", $projName, $tName, $cUserName, $unitCode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1070,10 +1138,10 @@
 
 
 		public function updateTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("ssssssss", $tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1082,11 +1150,11 @@
 			$stmt->close();
 		}
 
-		public function deleteTeamProject($projName, $tName, $cUserName, $unitCode, $term, $year) {
-		
-			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTEAMPROJECTDeleteTeamProject(?, ?, ?, ?, ?, ?)");
-			$stmt->bind_param("ssssss", $projName, $tName, $cUserName, $unitCode, $term, $year);
-			
+		public function deleteTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
+
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
+			$stmt->bind_param("ssssssss", $tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager);
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1104,8 +1172,8 @@
 
 		// get a single project role object with use of ProjectRole name
 		public function getProjRole($projRole) {
-	 
-			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM ProjectRole 
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM ProjectRole
 							WHERE RoleName = ?");
 			$stmt->bind_param('s', $projRole);
 
@@ -1134,9 +1202,9 @@
 
 		// get all project roles
 		public function getAllProjRoles() {
-	 
+
 			$stmt = $GLOBALS['conn']->prepare("Select * From ProjectRole");
-			
+
 			$pRoles = [];
 
 			try {
@@ -1165,10 +1233,10 @@
 		}
 
 		public function searchProjRole($searchQuery) {
-			
+
 			$searchResult = array();
 
-			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM ProjectRole 
+			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM ProjectRole
 								WHERE RoleName LIKE ? or RoleDescription LIKE ?"
 							);
 
@@ -1205,7 +1273,7 @@
 		// because no stored procedures
 
 	}
-	
+
 		class Task {
 		public $taskID;
 		public $tMemberID;
@@ -1217,8 +1285,8 @@
 		public $altered;
 
 		public function getTask($tID) {
-				
-			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM Task 
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM Task
 							WHERE ProjectTaskID = ?");
 			$stmt->bind_param('s', $tID);
 
@@ -1227,7 +1295,7 @@
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($taskID, $tMemberID, $teamProjectID, 
+				$stmt->bind_result($taskID, $tMemberID, $teamProjectID,
 								$roleName, $tDetails, $timeTaken, $logged, $altered);
 
 				if($stmt->num_rows > 0) {
@@ -1252,22 +1320,22 @@
 		}
 
 		public function getAllTasksByTeam($teamID) {
-	 
+
 			$stmt = $GLOBALS['conn']->prepare("Select T.ProjectTaskID, T.TeamMemberID,
-								T.TeamProjectID, T.RoleName, T.TaskDetails, T.TimeTaken, T.logged, T.altered, 
+								T.TeamProjectID, T.RoleName, T.TaskDetails, T.TimeTaken, T.logged, T.altered,
 								TP.ProjectName, TM.TeamName
-								From Task T 
+								From Task T
 								INNER JOIN TeamProjects TP ON TP.TeamProjectID = T.TeamProjectID
-								INNER JOIN Team TM ON TP.TeamID = TM.TeamID 
+								INNER JOIN Team TM ON TP.TeamID = TM.TeamID
 								WHERE TP.TeamID = ?");
-			
+
 			$tasks = [];
 
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($taskID, $tMemberID, $teamProjectID, 
-								$roleName, $tDetails, $timeTaken, $logged, $altered, 
+				$stmt->bind_result($taskID, $tMemberID, $teamProjectID,
+								$roleName, $tDetails, $timeTaken, $logged, $altered,
 								$projName, $teamName);
 
 				$i = 0;
@@ -1297,15 +1365,15 @@
 			return $tasks;
 		}
 
-		public function addTask($sUserName, $projName, 
-							$teamName, $supUserName, $unitCode, $term, 
+		public function addTask($sUserName, $projName,
+							$teamName, $supUserName, $unitCode, $term,
 							$year, $time, $taskDesc, $projRole) {
-	 
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTASKAddNewTask(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			$stmt->bind_param("ssssssssss", $sUserName, $projName, 
-							$teamName, $supUserName, $unitCode, $term, 
+			$stmt->bind_param("ssssssssss", $sUserName, $projName,
+							$teamName, $supUserName, $unitCode, $term,
 							$year, $time, $taskDesc, $projRole);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1315,15 +1383,15 @@
 		}
 
 		public function searchTask($searchQuery) {
-			
+
 			$searchResult = array();
 
 			$stmt = $GLOBALS['conn']->prepare("Select T.ProjectTaskID, T.TeamMemberID,
-								T.TeamProjectID, T.RoleName, T.TaskDetails, T.TimeTaken, T.logged, T.altered, 
+								T.TeamProjectID, T.RoleName, T.TaskDetails, T.TimeTaken, T.logged, T.altered,
 								TP.ProjectName, TM.TeamName
-								From Task T 
+								From Task T
 								INNER JOIN TeamProjects TP ON TP.TeamProjectID = T.TeamProjectID
-								INNER JOIN Team TM ON TP.TeamID = TM.TeamID 
+								INNER JOIN Team TM ON TP.TeamID = TM.TeamID
 								WHERE TM.TeamName LIKE ? or TP.ProjectName LIKE ? or T.RoleName LIKE ?");
 
 			$stmt->bind_param('sss', $searchQuery, $searchQuery, $searchQuery);
@@ -1333,8 +1401,8 @@
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($taskID, $tMemberID, $teamProjectID, 
-								$roleName, $tDetails, $timeTaken, $logged, $altered, 
+				$stmt->bind_result($taskID, $tMemberID, $teamProjectID,
+								$roleName, $tDetails, $timeTaken, $logged, $altered,
 								$projName, $teamName);
 
 				$i = 0;
@@ -1363,12 +1431,12 @@
 			}
 			return $tasks;
 		}
-		
+
 		public function updateTask($taskID, $projName, $teamName, $supEmail, $uCode, $term, $year, $timeTaken, $roleName) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTASKSModifyTask(?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("sssssssss", $taskID, $projName, $teamName, $supEmail, $uCode, $term, $year, $timeTaken, $roleName);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1394,13 +1462,13 @@
 		public $comments;
 		public $approval;
 
-		public function addMeeting($startTime, $endTime, $location, 
+		public function addMeeting($startTime, $endTime, $location,
 						$teamName, $supUserName, $unitCode, $term, $year) {
-	 
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSSUPERVISORMEETINGAddMeeting(?, ?, ?, ?, ?, ?, ?, ?)");
-			$stmt->bind_param("ssssssss", $startTime, $endTime, $location, 
+			$stmt->bind_param("ssssssss", $startTime, $endTime, $location,
 						$teamName, $supUserName, $unitCode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1410,8 +1478,8 @@
 		}
 
 		public function getMeeting($meetingID) {
-				
-			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM SupervisorMeeting 
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM SupervisorMeeting
 							WHERE MeetingID = ?");
 			$stmt->bind_param('s', $meetingID);
 
@@ -1420,8 +1488,8 @@
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($meetingID, $teamID, $agenda, $startTime, 
-							$endTime, $dispTime, $location, $dispLocation, 
+				$stmt->bind_result($meetingID, $teamID, $agenda, $startTime,
+							$endTime, $dispTime, $location, $dispLocation,
 							$meetMinutes, $comments, $approval);
 
 				if($stmt->num_rows > 0) {
@@ -1450,10 +1518,10 @@
 
 		// search meetings by team name and supervisor username
 		public function searchMeeting($searchQuery) {
-			
+
 			$searchResult = array();
 
-			$stmt = $GLOBALS['conn']->prepare("Select M.MeetingID, M.TeamID, M.Agender, M.StartTime, M.EndTime, 
+			$stmt = $GLOBALS['conn']->prepare("Select M.MeetingID, M.TeamID, M.Agender, M.StartTime, M.EndTime,
 								M.Display_Time, M.Location, M.Meeting_Minutes, M.Comments, M.Approval, T.TeamName, OF.UserName
 								FROM SupervisorMeeting M INNER JOIN Team T ON M.TeamID = T.TeamID
 								INNER JOIN OfferingStaff OF ON OF.OfferingStaffID = T.OfferingStaffID
@@ -1466,8 +1534,8 @@
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($meetingID, $teamID, $agenda, $startTime, 
-							$endTime, $dispTime, $location, 
+				$stmt->bind_result($meetingID, $teamID, $agenda, $startTime,
+							$endTime, $dispTime, $location,
 							$meetMinutes, $comments, $approval, $teamName, $userName);
 
 				$i = 0;
@@ -1498,12 +1566,12 @@
 			}
 			return $meetings;
 		}
-		
+
 		public function deleteMeeting($startTime, $teamName, $supUserName, $unitCode, $term, $year) {
-		
+
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSSUPERVISORMEETINGDeleteMeeting(?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("ssssss", $startTime, $teamName, $supUserName, $unitCode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1521,8 +1589,8 @@
 		public $meetingID;
 
 		public function getAttendee($mAttendeeID) {
-			
-			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM MeetingAttendees 
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT * FROM MeetingAttendees
 				WHERE MeetingAttendeeID = ?");
 			$stmt->bind_param('s', $mAttendeeID);
 
@@ -1550,11 +1618,11 @@
 		}
 
 		public function searchAttendee($searchQuery) {
-			
+
 			$searchResult = array();
 
-			$stmt = $GLOBALS['conn']->prepare("SELECT MA.MeetingAttendeeID, MA.TeamMemberID, MA.MeetingID, 
-								M.TeamID, T.TeamName, T.ProjectManager, M.Agender, M.StartTime, M.EndTime, M.Location, 
+			$stmt = $GLOBALS['conn']->prepare("SELECT MA.MeetingAttendeeID, MA.TeamMemberID, MA.MeetingID,
+								M.TeamID, T.TeamName, T.ProjectManager, M.Agender, M.StartTime, M.EndTime, M.Location,
 								M.Display_Loc, M.Display_Time, M.Comments, M.Approval
 								FROM MeetingAttendees MA INNER JOIN SupervisorMeeting M ON M.MeetingID = MA.MeetingID
 								INNER JOIN Team T ON T.TeamID = M.TeamID
@@ -1569,7 +1637,7 @@
 				$stmt->store_result();
 				$stmt->bind_result($mAttendeeID, $tMemberID, $meetingID, $teamID, $teamName,
 								$projManager, $agenda, $startTime, $endTime, $location, $dispLoc, $dispTime,
-							 	$comments, $approval); 
+							 	$comments, $approval);
 
 				$i = 0;
 				if($stmt->num_rows > 0) {
@@ -1606,7 +1674,7 @@
 
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSMEETINGATTENDIEESAddAttendiee(?, ?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("sssssss", $email, $startTime, $teamName, $supEmail, $unitCode, $term, $year);
-			
+
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
