@@ -448,21 +448,6 @@
 
 			$stmt->close();
 		}
-		
-		public function DeleteUnit($uCode, $uName) {
-
-			$stmt = $GLOBALS['conn']->prepare("call TCABS_Unit_register(?, ?)");
-			$stmt->bind_param("ss", $uCode, $uName);
-
-			try {
-				$stmt->execute();
-				echo "<script type='text/javascript'>alert('Unit deleted successfully!');</script>";
-			} catch(mysqli_sql_exception $e) {
-				throw $e;
-			}
-
-			$stmt->close();
-		}
 	}
 
 	class UnitOffering extends Unit {
@@ -530,7 +515,7 @@
 						$this->offerings['censusDate'] = $censusDate;
 					}
 				}
-				print_r($this->offerings);
+				// print_r($this->offerings);
 				$stmt->close();
 			} catch(mysqli_sql_exception $e) {
 				throw $e;
@@ -542,13 +527,13 @@
 		// return all Staff Offerings
 		public function getAllStaffOfferings() {
 
-			$stmt = $GLOBALS['conn']->prepare("select unit.unitCode, Offeringstaff.offeringstaffid, offeringstaff.unitofferingid, users.email, users.fName, users.lName, unit.unitName, teachingperiod.term, teachingperiod.year, unitoffering.censusDate from OfferingStaff left join users on offeringstaff.UserName = users.email left join unitoffering on OfferingStaff.UnitOfferingID = UnitOffering.UnitOfferingID left join unit on unitoffering.unitCode = unit.unitCode left join teachingperiod on unitoffering.term = teachingperiod.term and unitoffering.year = teachingperiod.year order by users.fName");
+			$stmt = $GLOBALS['conn']->prepare("select unit.unitCode, Offeringstaff.offeringstaffid, offeringstaff.unitofferingid, users.email, users.fName, users.lName, unit.unitName, teachingperiod.term, teachingperiod.year, unitoffering.censusDate, usercat.userType from OfferingStaff left join users on offeringstaff.UserName = users.email left join unitoffering on OfferingStaff.UnitOfferingID = UnitOffering.UnitOfferingID left join unit on unitoffering.unitCode = unit.unitCode left join teachingperiod on unitoffering.term = teachingperiod.term and unitoffering.year = teachingperiod.year left join userCat on users.email = userCat.email group by users.email order by users.fName");
 			//$stmt->bind_param();
 
 			try {
 				$stmt->execute();
 				$stmt->store_result();
-				$stmt->bind_result($unitCode, $uOffStaffID, $uOffID, $cUserName, $fName, $lName, $unitName, $term, $year, $censusDate);
+				$stmt->bind_result($unitCode, $uOffStaffID, $uOffID, $cUserName, $fName, $lName, $unitName, $term, $year, $censusDate, $role);
 
 				$allUnitOfferings = [];
 				$i = 0;
@@ -565,6 +550,49 @@
 						'term' => $term,
 						'year' => $year,
 						'censusDate' => $censusDate,
+						'role' => $role,
+					);
+					$i = $i + 1;
+					}
+				}
+				$stmt->close();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+			return $allUnitOfferings;
+		}
+
+
+		// return a particular staff offering
+		public function getStaffOffering($sOfferID) {
+
+			$stmt = $GLOBALS['conn']->prepare("select unit.unitCode, Offeringstaff.offeringstaffid, offeringstaff.unitofferingid, users.email, users.fName, users.lName, unit.unitName, teachingperiod.term, teachingperiod.year, unitoffering.censusDate, usercat.userType from OfferingStaff left join users on offeringstaff.UserName = users.email left join unitoffering on OfferingStaff.UnitOfferingID = UnitOffering.UnitOfferingID left join unit on unitoffering.unitCode = unit.unitCode left join teachingperiod on unitoffering.term = teachingperiod.term and unitoffering.year = teachingperiod.year left join userCat on users.email = userCat.email
+			where offeringstaff.offeringstaffID = ?
+			group by users.email
+			 order by users.fName");
+			$stmt->bind_param("s", $sOfferID);
+
+			try {
+				$stmt->execute();
+				$stmt->store_result();
+				$stmt->bind_result($unitCode, $uOffStaffID, $uOffID, $cUserName, $fName, $lName, $unitName, $term, $year, $censusDate, $role);
+
+				$allUnitOfferings = [];
+				$i = 0;
+				if($stmt->num_rows > 0) {
+					while($stmt->fetch()) {
+						$allUnitOfferings[$i] = array(
+						'unitCode' => $unitCode,
+						'uOffStaffID' => $uOffStaffID,
+						'uOffID' => $uOffID,
+						'cUserName' => $cUserName,
+						'fName' => $fName,
+						'lName' => $lName,
+						'unitName' => $unitName,
+						'term' => $term,
+						'year' => $year,
+						'censusDate' => $censusDate,
+						'role' => $role,
 					);
 					$i = $i + 1;
 					}
@@ -592,11 +620,11 @@
 
 			$stmt->close();
 		}
-		
+
 		public function DeleteUnitOff($uOffID, $term, $year) {
 
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUNITOFFERINGDeleteOffering(?, ?, ?)");
-			$stmt->bind_param("sssss", $uOffID, $term, $year);
+			$stmt->bind_param("sss", $uOffID, $term, $year);
 
 			try {
 				$stmt->execute();
@@ -608,6 +636,8 @@
 			$stmt->close();
 		}
 	}
+
+
 
 	class Enrolment{
 		public $enrolmentID;
@@ -667,20 +697,6 @@
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABS_enrolment_add(?, ?, ?, ?)");
 			$stmt->bind_param("ssss", $userEmail, $unitCode, $term, $year);
 
-			try {
-				$stmt->execute();
-			} catch(mysqli_sql_exception $e) {
-				throw $e;
-			}
-
-			$stmt->close();
-		}
-		
-		public function deleteEnrol($userEmail, $unitCode, $term, $year) {
-
-			$stmt = $GLOBALS['conn']->prepare("CALL TCABSENROLMENTDeleteEnrolment(?, ?, ?, ?)");
-			$stmt->bind_param("ssss", $userEmail, $unitCode, $term, $year);
-			
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -855,6 +871,55 @@
 		}
 
 
+		// Get all teams created and the units
+
+		public function getAllTeams() {
+
+			$searchResult = array();
+
+			$stmt = $GLOBALS['conn']->prepare("SELECT T.TeamID, T.TeamName,
+								T.OfferingStaffID, OF.UserName,T.projectManager,
+								OF.UnitOfferingID, UO.unitCode, UO.term, UO.year
+								FROM Team T
+								INNER JOIN OfferingStaff OF ON T.OfferingStaffID = OF.OfferingStaffID
+								INNER JOIN UnitOffering UO ON UO.unitOfferingID = OF.UnitOfferingID
+								"
+								);
+			// $stmt->bind_param('ss', $searchQuery, $searchQuery);
+
+			$teams = [];
+			try {
+				$stmt->execute();
+				$stmt->store_result();
+				$stmt->bind_result($teamID, $teamName, $offeringStaffID, $uName,
+								$projManager, $uOffID, $unitCode, $term, $year);
+
+				$i = 0;
+				if($stmt->num_rows > 0) {
+					while($stmt->fetch()) {
+
+						$teams[$i] = (array)[
+							"teamID" => $teamID,
+							"teamName" => $teamName,
+							"offeringStaffID" => $offeringStaffID,
+							"uName" => $uName,
+							"projManager" => $projManager,
+							"uOffID" => $uOffID,
+							"unitCode" => $unitCode,
+							"term" => $term,
+							"year" => $year
+						];
+
+						$i = $i +1;
+					}
+				}
+				$stmt->close();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+			return $teams;
+		}
+
 		public function searchTeam($searchQuery) {
 
 			$searchResult = array();
@@ -1024,19 +1089,6 @@
 			}
 			return $teams;
 		}
-		
-		public function deleteProject($projName, $projDesc) {
-		
-			$stmt = $GLOBALS['conn']->prepare("CALL TCABSPROJECTDeleteProject(?, ?)");
-			$stmt->bind_param("ss", $projName, $projDesc);
-			
-			try {
-				$stmt->execute();
-			} catch(mysqli_sql_exception $e) {
-				throw $e;
-			}
-			$stmt->close();
-		}
 	}
 
 	class TeamProject {
@@ -1136,7 +1188,8 @@
 			$stmt->close();
 		}
 
-
+		// stored procedure to be completed
+		/*
 		public function updateTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
 
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
@@ -1149,7 +1202,10 @@
 			}
 			$stmt->close();
 		}
+	 */
 
+		// stored procedure to be completed
+		/*
 		public function deleteTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
 
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
@@ -1162,7 +1218,7 @@
 			}
 			$stmt->close();
 		}
-	
+	 */
 	}
 
 	class ProjRole {
@@ -1675,19 +1731,6 @@
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSMEETINGATTENDIEESAddAttendiee(?, ?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("sssssss", $email, $startTime, $teamName, $supEmail, $unitCode, $term, $year);
 
-			try {
-				$stmt->execute();
-			} catch(mysqli_sql_exception $e) {
-				throw $e;
-			}
-			$stmt->close();
-		}
-		
-		public function deleteMA($sEmail, $startTime, $teamName, $supUserName, $unitCode, $term, $year) {
-		
-			$stmt = $GLOBALS['conn']->prepare("CALL TCABSMEETINGATTENDIEESDeleteAttendiee(?, ?, ?, ?, ?, ?)");
-			$stmt->bind_param("sssssss", $sEmail, $startTime, $teamName, $supUserName, $unitCode, $term, $year);
-			
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {

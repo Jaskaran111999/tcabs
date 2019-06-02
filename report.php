@@ -18,76 +18,116 @@
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		<?php include "styles/stylesheet.php"; ?>
-		<link rel="stylesheet" href="/tcabs/public/css/reports.css"></link>
 
   <body class="loggedin">
+		<?php include "styles/stylesheet.php"; ?>
 
 			<body class="loggedin">
 				<?php include "views/header.php"; ?>
 			<div class="content">
-			<h2>Available reports to generate</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+
+			<h2>Generated Reports</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+
 			<div>
-				<?php
-				//Check the Users role to see if they have access to this
-				$roleFound = FALSE;
-				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
-					if($userType=='admin') {
-						$roleFound = TRUE;
-				?>
 		<div class="btn-group btn-group-justified">
-			<a href="report.php" class="btn btn-primary">Overview</a>
-			<a href="report1.php" class="btn btn-primary">1</a>
-			<a href="report2.php" class="btn btn-primary">2</a>
-			<a href="report3.php" class="btn btn-primary">3</a>
-			<a href="report4.php" class="btn btn-primary">4</a>
-			<a href="report5.php" class="btn btn-primary">5</a>
-			<a href="report6.php" class="btn btn-primary">6</a>
-			<a href="report7.php" class="btn btn-primary">7</a>
-			<a href="report8.php" class="btn btn-primary">8</a>
-			<a href="report9.php" class="btn btn-primary">9</a>
-			<a href="report10.php" class="btn btn-primary">10</a>
+			<?php
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='admin') { ?>
+					<a href="report1.php" class="btn btn-primary">Registered Convenors</a>
+			<?php }} ?>
+
+			<?php
+					$report2 = FALSE;
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='admin') {
+					$report2 = TRUE;
+			 	} else if($userType=='convenor') {
+					$report2 = TRUE;
+			 	} }
+				if($report2 == TRUE) { ?>
+					<a href="report2.php" class="btn btn-primary">Enrolled Students</a>
+			<?php } else {}?>
+
+			<?php
+					$report3 = FALSE;
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='admin') {
+					$report3 = TRUE;
+				} else if($userType=='convenor') {
+					$report3 = TRUE;
+				} }
+				if($report3 == TRUE) { ?>
+					<a href="report3.php" class="btn btn-primary">Registered Supervisors</a>
+			<?php } else {}?>
+
+			<?php
+					$report4 = FALSE;
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='convenor') {
+					$report4 = TRUE;
+				} else if($userType=='supervisor') {
+					$report4 = TRUE;
+				} }
+				if($report4 == TRUE) { ?>
+					<a href="report4.php" class="btn btn-primary">Registered Projects</a>
+			<?php } else {}?>
+
+			<?php
+					$report5 = FALSE;
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='convenor') {
+					$report5 = TRUE;
+				} else if($userType=='supervisor') {
+					$report5 = TRUE;
+				} }
+				if($report5 == TRUE) { ?>
+					<a href="report5.php" class="btn btn-primary">Registered Teams</a>
+			<?php } else {}?>
+
+			<?php
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='supervisor') { ?>
+					<a href="report6.php" class="btn btn-primary">Meeting Attendees</a>
+			<?php }} ?>
+
+			<?php
+					$report8 = FALSE;
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='convenor') {
+					$report8 = TRUE;
+				} else if($userType=='supervisor') {
+					$report8 = TRUE;
+				} }
+				if($report8 == TRUE) { ?>
+					<a href="report8.php" class="btn btn-primary">Team Overview</a>
+			<?php } else {}?>
+
+			<?php
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='supervisor') { ?>
+					<a href="report10.php" class="btn btn-primary">Meeting Summary</a>
+			<?php }} ?>
 		</div>
-		<br>
-    <p class="h4 mb-4 text-center">Overview of Available Reports</p>
-		<table>
-					<tr>
-						<th>Number</th>
-						<th>Description</th>
-					</tr>
-				<?php
-					$conn = mysqli_connect("localhost", "root", "", "tcabs");
-					if ($conn-> connect_error){
-						die("Connection failed:". $conn-> connect_error);
-					}
-
-					$sql = "SELECT report_id, report_description from reports";
-					$result = $conn-> query($sql);
-
-					if($result-> num_rows> 0){
-						while ($row = $result-> fetch_assoc()){
-							echo "<tr><td>". $row["report_id"] ."</td><td>". $row["report_description"] ."</td></tr>";
-							}
-							echo "</table>";
-					}
-					else {
-						echo "0 resuts";
-					}
-					$conn->close();
-				?>
-		</table>
-	<?php  } }
-
-	//If they dont have correct permission
-	if ($roleFound == FALSE) { ?>
-
-		<h2>Permission Denied</h2>
 		<div>
-		<p>Sorry, you do not have access to this page. Please contact your administrator.</p>
-		</div>
-	<?php  }  ?>
-		</div>
+			<?php
+			//Check the Users role to see if they have access to this
+			$report = TRUE;
+			foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+				if($userType=='student') {
+					$report = FALSE;
+				} else {} } ?>
+			<?php
+			//If they dont have correct permission
+			if ($report == FALSE) { ?>
+
+				<h2>Permission Denied</h2>
+				<div>
+				<p>Sorry, you do not have access to this page. Please contact your administrator.</p>
+				</div>
+			<?php  }  ?>
+				</div>
 	</div>
+</div>
 </body>
 <?php include "views/footer.php"; ?>
 </html>

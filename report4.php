@@ -12,12 +12,19 @@ if(isset($_POST['search']))
     $valueToSearch = $_POST['valueToSearch'];
     // search in all table columns
     // using concat mysql function
-    $query = "SELECT * FROM users INNER JOIN unitoffering ON users.email = unitoffering.cUserName INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID INNER JOIN project ON offeringproject.ProjectName = project.ProjectName WHERE CONCAT(`fName`,`lName`,`unitCode`,`term`,`year`,`ProjectDescription`) LIKE '%".$valueToSearch."%'";
+    $query = "SELECT users.fName,users.lName,unitoffering.unitCode,unitoffering.term,unitoffering.year,project.ProjectName,project.ProjectDescription FROM users
+		INNER JOIN unitoffering ON users.email = unitoffering.cUserName
+		INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID
+		INNER JOIN project ON offeringproject.ProjectName = project.ProjectName
+		WHERE CONCAT(`fName`,`lName`,`unitCode`,`term`,`year`,`ProjectDescription`) LIKE '%".$valueToSearch."%'";
     $search_result = filterTable($query);
 
 }
  else {
-   $query = "SELECT * FROM users INNER JOIN unitoffering ON users.email = unitoffering.cUserName INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID INNER JOIN project ON offeringproject.ProjectName = project.ProjectName";
+   $query = "SELECT users.fName,users.lName,unitoffering.unitCode,unitoffering.term,unitoffering.year,project.ProjectName,project.ProjectDescription FROM users
+	 INNER JOIN unitoffering ON users.email = unitoffering.cUserName
+	 INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID
+	 INNER JOIN project ON offeringproject.ProjectName = project.ProjectName";
    $search_result = filterTable($query);
 }
 
@@ -43,7 +50,87 @@ function filterTable($query)
 			<body class="loggedin">
 				<?php include "views/header.php"; ?>
 			<div class="content">
-			<h2>Generated Report</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+			<h2>Generated Reports</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+
+			<div class="btn-group btn-group-justified">
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') { ?>
+						<a href="report1.php" class="btn btn-primary">Registered Convenors</a>
+				<?php }} ?>
+
+				<?php
+						$report2 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') {
+						$report2 = TRUE;
+				 	} else if($userType=='convenor') {
+						$report2 = TRUE;
+				 	} }
+					if($report2 == TRUE) { ?>
+						<a href="report2.php" class="btn btn-primary">Enrolled Students</a>
+				<?php } else {}?>
+
+				<?php
+						$report3 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') {
+						$report3 = TRUE;
+					} else if($userType=='convenor') {
+						$report3 = TRUE;
+					} }
+					if($report3 == TRUE) { ?>
+						<a href="report3.php" class="btn btn-primary">Registered Supervisors</a>
+				<?php } else {}?>
+
+				<?php
+						$report4 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report4 = TRUE;
+					} else if($userType=='supervisor') {
+						$report4 = TRUE;
+					} }
+					if($report4 == TRUE) { ?>
+						<a href="report4.php" class="btn btn-primary">Registered Projects</a>
+				<?php } else {}?>
+
+				<?php
+						$report5 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report5 = TRUE;
+					} else if($userType=='supervisor') {
+						$report5 = TRUE;
+					} }
+					if($report5 == TRUE) { ?>
+						<a href="report5.php" class="btn btn-primary">Registered Teams</a>
+				<?php } else {}?>
+
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='supervisor') { ?>
+						<a href="report6.php" class="btn btn-primary">Meeting Attendees</a>
+				<?php }} ?>
+
+				<?php
+						$report8 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report8 = TRUE;
+					} else if($userType=='supervisor') {
+						$report8 = TRUE;
+					} }
+					if($report8 == TRUE) { ?>
+						<a href="report8.php" class="btn btn-primary">Team Overview</a>
+				<?php } else {}?>
+
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='supervisor') { ?>
+						<a href="report10.php" class="btn btn-primary">Meeting Summary</a>
+				<?php }} ?>
+			</div>
 
 			<div>
 				<?php
@@ -60,7 +147,7 @@ function filterTable($query)
 				//If they have the correct role to view the page
 				if($roleFound == TRUE) { ?>
 
-    <p class="h4 mb-4 text-center">List of registered projects</p>
+    <p class="h4 mb-4 text-center">Registered Projects</p>
     <body>
         <form action="report4.php" method="post">
             <input type="text" name="valueToSearch" placeholder="Search.."><br><br>
