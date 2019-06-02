@@ -448,6 +448,21 @@
 
 			$stmt->close();
 		}
+		
+		public function DeleteUnit($uCode, $uName) {
+
+			$stmt = $GLOBALS['conn']->prepare("call TCABS_Unit_register(?, ?)");
+			$stmt->bind_param("ss", $uCode, $uName);
+
+			try {
+				$stmt->execute();
+				echo "<script type='text/javascript'>alert('Unit deleted successfully!');</script>";
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+
+			$stmt->close();
+		}
 	}
 
 	class UnitOffering extends Unit {
@@ -577,6 +592,21 @@
 
 			$stmt->close();
 		}
+		
+		public function DeleteUnitOff($uOffID, $term, $year) {
+
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUNITOFFERINGDeleteOffering(?, ?, ?)");
+			$stmt->bind_param("sssss", $uOffID, $term, $year);
+
+			try {
+				$stmt->execute();
+				echo "<script type='text/javascript'>alert('Unit Offering deleted successfully');</script>";
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+
+			$stmt->close();
+		}
 	}
 
 	class Enrolment{
@@ -637,6 +667,20 @@
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABS_enrolment_add(?, ?, ?, ?)");
 			$stmt->bind_param("ssss", $userEmail, $unitCode, $term, $year);
 
+			try {
+				$stmt->execute();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+
+			$stmt->close();
+		}
+		
+		public function deleteEnrol($userEmail, $unitCode, $term, $year) {
+
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSENROLMENTDeleteEnrolment(?, ?, ?, ?)");
+			$stmt->bind_param("ssss", $userEmail, $unitCode, $term, $year);
+			
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -980,6 +1024,19 @@
 			}
 			return $teams;
 		}
+		
+		public function deleteProject($projName, $projDesc) {
+		
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSPROJECTDeleteProject(?, ?)");
+			$stmt->bind_param("ss", $projName, $projDesc);
+			
+			try {
+				$stmt->execute();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+			$stmt->close();
+		}
 	}
 
 	class TeamProject {
@@ -1079,8 +1136,7 @@
 			$stmt->close();
 		}
 
-		// stored procedure to be completed
-		/*
+
 		public function updateTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
 
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
@@ -1093,10 +1149,7 @@
 			}
 			$stmt->close();
 		}
-	 */
 
-		// stored procedure to be completed
-		/*
 		public function deleteTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
 
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
@@ -1109,7 +1162,7 @@
 			}
 			$stmt->close();
 		}
-	 */
+	
 	}
 
 	class ProjRole {
@@ -1622,6 +1675,19 @@
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSMEETINGATTENDIEESAddAttendiee(?, ?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("sssssss", $email, $startTime, $teamName, $supEmail, $unitCode, $term, $year);
 
+			try {
+				$stmt->execute();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+			$stmt->close();
+		}
+		
+		public function deleteMA($sEmail, $startTime, $teamName, $supUserName, $unitCode, $term, $year) {
+		
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSMEETINGATTENDIEESDeleteAttendiee(?, ?, ?, ?, ?, ?)");
+			$stmt->bind_param("sssssss", $sEmail, $startTime, $teamName, $supUserName, $unitCode, $term, $year);
+			
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
