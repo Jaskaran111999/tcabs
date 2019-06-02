@@ -12,11 +12,11 @@
 			// print_r($_POST);
 
 			// --------------------------  Data to populate forms --------------------------------
-			$n_unitOffering = new UnitOffering;
+			$n_unitOffering = new Team;
 			try {
 
 				// returns a multidimensional array of results
-				$unitOfferingAvailable = $n_unitOffering->getAllStaffOfferings();
+				$unitOfferingAvailable = $n_unitOffering->getAllTeams();
 
 			} catch(mysqli_sql_exception $e) {
 				echo "<script type='text/javascript'>alert('{$e->getMessage()}');</script>";
@@ -97,20 +97,19 @@
 					// Adding new data
 					if($_POST['submit'] === "addData") {
 
-							$selectedUnitOffering = $n_unitOffering->getStaffOffering($_POST['unitOfferingID']);
+							$selectedUnitOffering = $n_unitOffering->searchTeam($_POST['unitOfferingID']);
 							print_r($selectedUnitOffering);
-							$newData = new Team;
-
+							$newData = new Project;
 
 
 							try {
 								foreach($selectedUnitOffering as $key => $value) {
-								$newData->addTeam(
+								$newData->addProject(
 									$_POST['teamName'],
-									$value['cUserName'],
-									$value['unitCode'],
-									$value['term'],
-									$value['year']
+									$_POST['teamDesc']
+								//	$value['unitCode'],
+								//	$value['term'],
+								//	$value['year']
 								);
 							}
 							echo "<script type='text/javascript'>alert('Added successfully!');</script>";
@@ -177,7 +176,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<title>Manage Teams - TCABS</title>
+	<title>Manage Projects - TCABS</title>
 		<!-- Stylesheets -->
 		<?php include "../styles/stylesheet.php"; ?>
   </head>
@@ -185,7 +184,7 @@
    <body class="loggedin">
 		<?php include "../views/header.php"; ?>
 		<div class="content">
-			<h2>Manage Teams</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+			<h2>Manage Projects</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
 		<div>
 
 		<!-- Nav tabs -->
@@ -275,29 +274,29 @@
 		<!-- Tab 1 -->
   	<div class="tab-pane container <?php if((isset($_POST['submit']) && $_POST['submit'] == 'addData') || $_SERVER['REQUEST_METHOD'] == 'GET') { echo 'active show';} ?>" id="home">
 			<form method ="post" class="was-validated"><br>
-				<p class="h4 mb-4 text-center">Add Team</p>
-				<input type="text" id="teamName" name="teamName" class="form-control" placeholder="Team Name" required /><br>
+				<p class="h4 mb-4 text-center">Add Project</p>
+				<input type="text" id="teamName" name="teamName" class="form-control" placeholder="Project Name" required /><br>
+				<input type="text" id="teamDesc" name="teamDesc" class="form-control" placeholder="Project Description" required /><br>
 
 
 				<select class="browser-default custom-select" id="unitOfferingID" name="unitOfferingID" required>
-					<option value="" disabled="" selected="">Select Team Supervisor / Unit</option>
+					<option value="" disabled="" selected="">Select Team / Unit</option>
 
 				<!-- Populate based on units table here -->
 
 				<?php
 				foreach($unitOfferingAvailable as $key => $value) {
-					if ($value['role'] == "supervisor") {
-				$unitName = $value['fName'] . " " . $value['lName'] . " - " . $value['cUserName'] . " - " . $value['year'] . " - " . $value['term'] . " - " . $value['unitCode'] . " - " . $value['unitName'];
+				$unitName = $value['teamName'] . " - "  . $value['teamID'] . " - " . $value['uName'] . " - " . $value['year'] . " - " . $value['term'] . " - " . $value['unitCode'];
 				?>
-				<option value="<?php echo $value['uOffStaffID']; ?>"> <?php echo $unitName; ?></option>
-			<?php } }?>
+				<option value="<?php echo $value['teamID']; ?>"> <?php echo $unitName; ?></option>
+			<?php }?>
 
 
 				</select>
 				<br>
 
 				<br><br>
-				<button class="btn btn-info my-4 btn-block" type="submit" name="submit" value="addData">Add Team</button>
+				<button class="btn btn-info my-4 btn-block" type="submit" name="submit" value="addData">Add</button>
 			</form>
 		</div>
 

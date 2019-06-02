@@ -12,13 +12,17 @@
     $valueToSearch = $_POST['valueToSearch'];
     // search in all table columns
     // using concat mysql function
-    $query = "SELECT unitCode,term,year,team.TeamName,ProjectManager From unitoffering INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID INNER JOIN project ON offeringproject.ProjectName = project.ProjectName INNER JOIN teamprojects ON project.ProjectName = teamprojects.ProjectName INNER JOIN team ON teamprojects.TeamID = team.TeamID WHERE CONCAT(`TeamName`,`term`,`year`,`unitCode`) LIKE '%".$valueToSearch."%'";
+    $query = "SELECT unitCode,term,year,team.TeamName,team.ProjectManager From unitoffering
+		INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID
+		INNER JOIN project ON offeringproject.ProjectName = project.ProjectName
+		INNER JOIN teamprojects ON project.ProjectName = teamprojects.ProjectName
+		INNER JOIN team ON teamprojects.TeamID = team.TeamID WHERE CONCAT(`TeamName`,`term`,`year`,`unitCode`,`ProjectManager`) LIKE '%".$valueToSearch."%'";
     $search_result = filterTable($query);
   }
   else if(isset($_POST['details'])) {
   $firsttable = FALSE;
   $TeamName = $_POST['details'];
-    $query = "SELECT team.TeamName,fName,lName,email,pNum From team
+    $query = "SELECT team.TeamName,users.fName,users.lName,users.email,users.pNum,users.gender From team
     INNER JOIN teammember ON team.TeamID = teammember.TeamID
     INNER JOIN enrolment ON teammember.EnrolmentID = enrolment.enrolmentID
     INNER JOIN users ON enrolment.sUserName = users.email
@@ -27,7 +31,11 @@
 }
  else {
     $firsttable = TRUE;
-    $query = "SELECT unitCode,term,year,team.TeamName,ProjectManager From unitoffering INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID INNER JOIN project ON offeringproject.ProjectName = project.ProjectName INNER JOIN teamprojects ON project.ProjectName = teamprojects.ProjectName INNER JOIN team ON teamprojects.TeamID = team.TeamID";
+    $query = "SELECT unitCode,term,year,team.TeamName,team.ProjectManager From unitoffering
+		INNER JOIN offeringproject ON unitoffering.unitOfferingID = offeringproject.UnitOfferingID
+		INNER JOIN project ON offeringproject.ProjectName = project.ProjectName
+		INNER JOIN teamprojects ON project.ProjectName = teamprojects.ProjectName
+		INNER JOIN team ON teamprojects.TeamID = team.TeamID";
     $search_result = filterTable($query);
 }
 
@@ -51,7 +59,87 @@ function filterTable($query)
 				<?php include "views/header.php"; ?>
 
 			<div class="content">
-			<h2>Generated Report</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+			<h2>Generated Reports</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+
+			<div class="btn-group btn-group-justified">
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') { ?>
+						<a href="report1.php" class="btn btn-primary">Registered Convenors</a>
+				<?php }} ?>
+
+				<?php
+						$report2 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') {
+						$report2 = TRUE;
+				 	} else if($userType=='convenor') {
+						$report2 = TRUE;
+				 	} }
+					if($report2 == TRUE) { ?>
+						<a href="report2.php" class="btn btn-primary">Enrolled Students</a>
+				<?php } else {}?>
+
+				<?php
+						$report3 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') {
+						$report3 = TRUE;
+					} else if($userType=='convenor') {
+						$report3 = TRUE;
+					} }
+					if($report3 == TRUE) { ?>
+						<a href="report3.php" class="btn btn-primary">Registered Supervisors</a>
+				<?php } else {}?>
+
+				<?php
+						$report4 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report4 = TRUE;
+					} else if($userType=='supervisor') {
+						$report4 = TRUE;
+					} }
+					if($report4 == TRUE) { ?>
+						<a href="report4.php" class="btn btn-primary">Registered Projects</a>
+				<?php } else {}?>
+
+				<?php
+						$report5 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report5 = TRUE;
+					} else if($userType=='supervisor') {
+						$report5 = TRUE;
+					} }
+					if($report5 == TRUE) { ?>
+						<a href="report5.php" class="btn btn-primary">Registered Teams</a>
+				<?php } else {}?>
+
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='supervisor') { ?>
+						<a href="report6.php" class="btn btn-primary">Meeting Attendees</a>
+				<?php }} ?>
+
+				<?php
+						$report8 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report8 = TRUE;
+					} else if($userType=='supervisor') {
+						$report8 = TRUE;
+					} }
+					if($report8 == TRUE) { ?>
+						<a href="report8.php" class="btn btn-primary">Team Overview</a>
+				<?php } else {}?>
+
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='supervisor') { ?>
+						<a href="report10.php" class="btn btn-primary">Meeting Summary</a>
+				<?php }} ?>
+			</div>
 
 			<div>
 				<?php
@@ -71,7 +159,7 @@ function filterTable($query)
     if($roleFound == TRUE) {
   	if ($firsttable == TRUE) { ?>
 
-    <p class="h4 mb-4 text-center">List of registered teams</p>
+    <p class="h4 mb-4 text-center">Registered Teams</p>
 
     <body>
         <form action="report5.php" method="post">
@@ -100,7 +188,7 @@ function filterTable($query)
             </table>
             <br>
             <br>
-            <div class="btn-group btn-group-justified">
+						<div class="btn-group btn-group-justified">
               <a href="report5.php" class="btn btn-primary">Clear Search</a>
             </div>
         </form>
@@ -109,32 +197,32 @@ function filterTable($query)
 <?php }
   	if ($firsttable == FALSE) { ?>
 
-      <p class="h4 mb-4 text-center">List of registered teams</p>
+      <p class="h4 mb-4 text-center">Team Members (<?php echo $TeamName;?>)</p>
 
       <body>
               <table>
                   <tr>
-                    <th>Team Name</th>
                     <th>Student Name</th>
                     <th>Student Phone</th>
                     <th>Student Email</th>
+										<th>Student Gender</th>
                   </tr>
 
         <!-- populate table from mysql database -->
                   <?php while($row = mysqli_fetch_array($search_result)):?>
                   <tr>
-                    <td><?php echo $row["TeamName"];?></td>
                     <td><?php echo $row["fName"]; ?> <?php echo $row["lName"]; ?></td>
                     <td><?php echo $row["pNum"]; ?></td>
                     <td><?php echo $row["email"]; ?></td>
+										<td><?php echo $row["gender"];?></td>
                   </tr>
                   <?php endwhile;?>
               </table>
               <br>
               <br>
-              <div class="btn-group btn-group-justified">
-                <a href="report5.php" class="btn btn-primary">Clear Search</a>
-              </div>
+							<div class="btn-group btn-group-justified">
+	              <a href="report5.php" class="btn btn-primary">Clear Search</a>
+	            </div>
           </form>
 
       </body>

@@ -5,11 +5,11 @@
 	if (!isset($_SESSION['logged_in'])) {
 		header('Location: login.php');
 	} else {
-	
+
 		if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 		}
-	
+
 	}
 ?>
 
@@ -22,32 +22,36 @@
 
 		<!-- Stylesheets -->
 		<?php include "styles/stylesheet.php"; ?>
-		
+
 		<title>Manage Staff Offering - TCABS</title>
   </head>
 
   <body class="loggedin">
 		<?php include "views/header.php"; ?>
-  
+
 		<div class="content">
 			<h2>Manage Staff Offering</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
 			<div>
-		<?php 
+		<?php
 		//Check the Users role to see if they have access to this
-		$roleFound = FALSE;						
+		$roleFound = FALSE;
 		foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
 			if($userType=='convenor') {
 				$roleFound = TRUE;
+			} else if($userType == 'admin') {
+						$roleFound = TRUE;
+					} }
+				if($roleFound == TRUE) {
 		?>
-			
-		<a type="button"  href="forms/addOfferingStaff.php" class="btn btn-primary btn-lg btn-block">Add Staff Offering</a>
-		<a type="button"  href="forms/deleteStaffOffering.php" class="btn btn-primary btn-lg btn-block">Delete Staff Offering</a>
-				
-		<?php  } }
-		
+
+		<a type="button"  href="forms/addOfferingStaff.php" class="btn btn-outline-primary btn-lg btn-block">Add Staff Offering</a>
+		<a type="button"  href="forms/deleteStaffOffering.php" class="btn btn-outline-primary btn-lg btn-block">Delete Staff Offering</a>
+
+		<?php
+
 		//If they dont have correct permission
-		if ($roleFound == FALSE) { ?>
-		
+	} if ($roleFound == FALSE) { ?>
+
 			<h2>Permission Denied</h2>
 			<div>
 			<p>Sorry, you do not have access to this page. Please contact your administrator.</p>
@@ -56,5 +60,5 @@
 			</div>
 		</div>
   </body>
-  <?php include "views/footer.php"; ?>  
+  <?php include "views/footer.php"; ?>
 </html>
