@@ -976,15 +976,6 @@
 		public $teamID;
 		public $projName;
 		public $budget;
-		
-		public $cUserName;
-		public $unitCode;
-		public $term;
-		public $year;
-		
-		public $nSupEmail;
-		public $nTeamName;
-		public $projManager;
 
 		// get a single team Project object with use of project name
 		public function getTeamProject($tProjID) {
