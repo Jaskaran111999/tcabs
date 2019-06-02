@@ -10,7 +10,7 @@
 		if(!$_SESSION['loggedUser']->uRoles['admin']) {
 			header('Location: /tcabs/dashboard.php');
 		} else {
-		
+
 			if($_SERVER['REQUEST_METHOD'] == 'POST') {
 				if(isset($_POST['submit'])) {
 					$unitObj = new Unit;
@@ -21,7 +21,7 @@
 							echo "<script type='text/javascript'>alert('{$e->getMessage()}');</script>";
 						}
 					} else if($_POST['submit'] === "bulkAddUnits") {
-				
+
 					} else if($_POST['submit'] === "search") {
 						if($_POST['searchQuery'] == null) {
 							echo "<script type='text/javascript'>alert('Search Box empty');</script>";
@@ -52,46 +52,42 @@
 						}
 					}
 				}
-			
+
 
 					if(isset($_POST['update'])) {
 					}
 
 				 if(isset($_POST['delete'])) {
-						
-			/* Switch off auto commit to allow transactions*/
-		mysqli_autocommit($conn, FALSE);
-		$query_success = TRUE;
-	
-			
-			
 			// Delete the Unit
-			$stmt = $GLOBALS['conn']->prepare("CALL TCABSDeleteUnit(?)");
-			$stmt->bind_param("s", $_POST['delete']);
-			
+			$unitObj = new Unit;
+			$searchResults = $unitObj->searchUnit("%{$_POST['delete']}%");
+			foreach($searchResults as $key => $value) {
 			try {
-				$stmt->execute();
-				
-				mysqli_commit($conn);
-				echo "<script type='text/javascript'>alert('Unit deleted successfully');</script>";
+				$unitObj->DeleteUnit(
+					$_POST['delete'],
+					$value['unitName']
+
+				);
+
 			} catch(mysqli_sql_exception $e) {
 				echo "<script type='text/javascript'>alert('{$e->getMessage()}');</script>";
-				mysqli_rollback($conn);
+
 			}
+		}
 
 					}
-				
-		
+
+
 		}
 			if(isset($_GET['status']) && $_GET['status'] == "succ") {
 				echo "<script type='text/javascript'>alert('CSV Import Success!');</script>";
 			}
-			
+
 			if(isset($_GET['status']) && $_GET['status'] == "invalid_file") {
 				echo "<script type='text/javascript'>alert('CSV Import Failed. Invalid File');</script>";
 			}
-			
-			
+
+
 			if(isset($_GET['status']) && $_GET['status'] == "err") {
 				echo "<script type='text/javascript'>alert('CSV Import Error. Please check');</script>";
 			}
@@ -108,6 +104,7 @@
 
 		<!-- Stylesheets -->
 		<?php include "../styles/stylesheet.php"; ?>
+				<title>Manage Units - TCABS</title>
   </head>
 
   <body class="loggedin">
@@ -116,7 +113,7 @@
 			<h2>Manage Units</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
 		<div>
 
-		<?php 
+		<?php
 			//show tabs if not in update mode
 			if(!isset($_POST['update'])) {
 		?>
@@ -147,7 +144,7 @@
 						$name = $value['unitCode'];
 						 $email = $value['unitName'];
 			?>
-			
+
 			<div>
 				<form action="registerUnits.php" method="post" class="was-validated"><br>
 					<p class="h4 mb-4 text-center">Edit Unit (<?php echo ($_POST['update']); ?>)</p>
@@ -187,7 +184,7 @@
   		<div class="tab-pane container fade <?php if(isset($_POST['submit']) && $_POST['submit'] == 'bulkAddUnits') { echo 'active show';} ?>" id="menu1">
 		<br>
   	  	<p class="h4 mb-4 text-center">Bulk Import via CSV</p>
-		<div class="col-mb-4 text-center"> 
+		<div class="col-mb-4 text-center">
 		<a class="btn btn-outline-info" href="../csv/units.csv" role="button">CSV Template Download</a>
 		</div>
 		<br><br>
@@ -223,9 +220,9 @@ $(".custom-file-input").on("change", function() {
 				</form><br>
 
 				<!-- Show Search Results -->
-			<?php 
+			<?php
 				if(isset($_POST['submit']) && $_POST['submit'] == 'search') {
-			?>		
+			?>
 
 			<div>
 				<form action="registerUnits.php" method="post">
@@ -237,7 +234,7 @@ $(".custom-file-input").on("change", function() {
     					<th style="width: 15%;"></th>
     				</tr>
 
-						<?php 
+						<?php
 
 							foreach($searchResults as $key => $value) {
 								$name = $value['unitCode'];
@@ -260,7 +257,7 @@ $(".custom-file-input").on("change", function() {
 			</div></div></div>
 		</div>
 	</body>
-  <?php include "../views/footer.php";  ?>  
+  <?php include "../views/footer.php";  ?>
 
 	<script>
 		// Add the following code if you want the name of the file appear on select

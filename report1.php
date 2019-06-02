@@ -12,12 +12,15 @@ if(isset($_POST['search']))
     $valueToSearch = $_POST['valueToSearch'];
     // search in all table columns
     // using concat mysql function
-    $query = "SELECT * FROM unitoffering INNER JOIN users ON unitoffering.cUserName = users.email WHERE CONCAT(`email`,`fName`,`lName`,`term`,`year`,`pNum`) LIKE '%".$valueToSearch."%'";
+    $query = "SELECT users.fName,users.lName,users.email,unitoffering.unitCode,users.pNum,unitoffering.term,unitoffering.year FROM unitoffering
+		INNER JOIN users ON unitoffering.cUserName = users.email
+		WHERE CONCAT(`email`,`fName`,`lName`,`term`,`year`,`pNum`,`unitCode`) LIKE '%".$valueToSearch."%'";
     $search_result = filterTable($query);
 
 }
  else {
-    $query = "SELECT * FROM unitoffering INNER JOIN users ON unitoffering.cUserName = users.email";
+    $query = "SELECT * FROM unitoffering
+		INNER JOIN users ON unitoffering.cUserName = users.email";
     $search_result = filterTable($query);
 }
 
@@ -43,29 +46,97 @@ function filterTable($query)
 			<body class="loggedin">
 				<?php include "views/header.php"; ?>
 			<div class="content">
-			<h2>Generated Report</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
-			<div>
+			<h2>Generated Reports</h2><h2-date><?php echo date('d F, Y (l)'); ?></h2-date><br>
+
+			<div class="btn-group btn-group-justified">
 				<?php
-				//Check the Users role to see if they have access to this
-				$roleFound = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') { ?>
+						<a href="report1.php" class="btn btn-primary">Registered Convenors</a>
+				<?php }} ?>
+
+				<?php
+						$report2 = FALSE;
 				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
 					if($userType=='admin') {
-						$roleFound = TRUE;
-				?>
-    <!--<div class="btn-group btn-group-justified">
-      <a href="report.php" class="btn btn-primary">Overview</a>
-      <a href="report1.php" class="btn btn-primary">1</a>
-      <a href="report2.php" class="btn btn-primary">2</a>
-      <a href="report3.php" class="btn btn-primary">3</a>
-      <a href="report4.php" class="btn btn-primary">4</a>
-      <a href="report5.php" class="btn btn-primary">5</a>
-      <a href="report6.php" class="btn btn-primary">6</a>
-      <a href="report7.php" class="btn btn-primary">7</a>
-      <a href="report8.php" class="btn btn-primary">8</a>
-      <a href="report9.php" class="btn btn-primary">9</a>
-      <a href="report10.php" class="btn btn-primary">10</a>
-    </div>-->
-    <p class="h4 mb-4 text-center">List of registered convenors and units of study</p>
+						$report2 = TRUE;
+				 	} else if($userType=='convenor') {
+						$report2 = TRUE;
+				 	} }
+					if($report2 == TRUE) { ?>
+						<a href="report2.php" class="btn btn-primary">Enrolled Students</a>
+				<?php } else {}?>
+
+				<?php
+						$report3 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='admin') {
+						$report3 = TRUE;
+					} else if($userType=='convenor') {
+						$report3 = TRUE;
+					} }
+					if($report3 == TRUE) { ?>
+						<a href="report3.php" class="btn btn-primary">Registered Supervisors</a>
+				<?php } else {}?>
+
+				<?php
+						$report4 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report4 = TRUE;
+					} else if($userType=='supervisor') {
+						$report4 = TRUE;
+					} }
+					if($report4 == TRUE) { ?>
+						<a href="report4.php" class="btn btn-primary">Registered Projects</a>
+				<?php } else {}?>
+
+				<?php
+						$report5 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report5 = TRUE;
+					} else if($userType=='supervisor') {
+						$report5 = TRUE;
+					} }
+					if($report5 == TRUE) { ?>
+						<a href="report5.php" class="btn btn-primary">Registered Teams</a>
+				<?php } else {}?>
+
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='supervisor') { ?>
+						<a href="report6.php" class="btn btn-primary">Meeting Attendees</a>
+				<?php }} ?>
+
+				<?php
+						$report8 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report8 = TRUE;
+					} else if($userType=='supervisor') {
+						$report8 = TRUE;
+					} }
+					if($report8 == TRUE) { ?>
+						<a href="report8.php" class="btn btn-primary">Team Overview</a>
+				<?php } else {}?>
+
+				<?php
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='supervisor') { ?>
+						<a href="report10.php" class="btn btn-primary">Meeting Summary</a>
+				<?php }} ?>
+			</div>
+
+			<div>
+					<?php
+					//Check the Users role to see if they have access to this
+					$roleFound = FALSE;
+					foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+						if($userType=='admin') {
+							$roleFound = TRUE;
+					?>
+    <p class="h4 mb-4 text-center">Registered convenors and units of study</p>
 
     <body>
         <form action="report1.php" method="post">
@@ -96,7 +167,7 @@ function filterTable($query)
             </table>
             <br>
             <br>
-            <div class="btn-group btn-group-justified">
+						<div class="btn-group btn-group-justified">
               <a href="report1.php" class="btn btn-primary">Clear Search</a>
             </div>
         </form>

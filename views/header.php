@@ -12,7 +12,7 @@
 				<a class="nav-link" href="/tcabs/profile.php">Profile</a>
       </li>
 
-			<?php 
+			<?php
 
 				$adminArr = array(
 					"registerUser.php" => "Manage Users",
@@ -21,28 +21,21 @@
 					// "registerStudents.php" => "Register Students",
 					"registerEnrolment.php" => "Manage Enrolments",
 					"../manageStaffOffering.php" => "Manage Staff Offering",
-					          "../report1.php" => "Registered Convenors",
-          "../report2.php" => "Enrolled Students",
-          "../report3.php" => "Registered Supervisors"
+					"../report.php" => "Generated Reports"
 				);
 
 				$convenorArr = array(
-					"../manageTeams.php" => "Manage Teams",
-					"registerProject.php" => "Manage Projects",
+					"registerTeam-v2.php" => "Manage Teams",
+					"registerProject-v2.php" => "Manage Projects",
 					"setupRoles.php" => "Manage Roles",
 					"allocateRoles.php" => "Allocate Roles",
 					"../manageStaffOffering.php" => "Manage Staff Offering",
-					          "../report2.php" => "Enrolled Students",
-          "../report3.php" => "Registered Supervisors",
-          "../report4.php" => "Registered Projects",
-          "../report5.php" => "Registered Teams",
+					"../report.php" => "Generated Reports"
 				);
 
 				$supervisorArr = array(
 					"supervisorMeeting.php" => "Meetings",
-					          "../report4.php" => "Registered Projects",
-          "../report5.php" => "Registered Teams",
-          "../report10.php" => "Meeting Summaries"
+          "../report.php" => "Generated Reports"
 				);
 
 				$studentArr = array(
@@ -50,7 +43,7 @@
 					"studentPeerAssess.php" => "Peer Assessment",
 					"studentSupervisorMeeting.php" => "Supervisor Meetings",
 					"studentTeamMeeting.php" => "Team Meetings",
-					
+
 				);
 
 				$formArr = array();
@@ -70,7 +63,7 @@
 
 	  				echo "<li id='dropdown-admin' class='nav-item dropdown'>
         						<a class='nav-link dropdown-toggle' href='#' id='navbarDropdownMenuLink' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
-          						<i class='fas fa-chalkboard-teacher'></i>" . " " . ucfirst($userType) . "</a> 
+          						<i class='fas fa-chalkboard-teacher'></i>" . " " . ucfirst($userType) . "</a>
         						<div class='dropdown-menu' aria-labelledby='navbarDropdownMenuLink'>";
 
 						foreach($formArr as $formPath => $value) {
@@ -81,7 +74,7 @@
 					}
 				}
 			?>
-			
+
 
 	  	<li class="nav-item">
 				<a class="nav-link" href="/tcabs/logout.php">Logout</a>
