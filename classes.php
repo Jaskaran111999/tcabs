@@ -345,6 +345,20 @@
 
 			$stmt->close();
 		}
+		
+		public function deleteUser($userEmail) {
+
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSDeleateUser(?)");
+			$stmt->bind_param("s", $userEmail);
+			
+			try {
+				$stmt->execute();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+
+			$stmt->close();
+		}
 	}
 
 	class Unit {
@@ -1155,6 +1169,15 @@
 		public $teamID;
 		public $projName;
 		public $budget;
+		
+		public $cUserName;
+		public $unitCode;
+		public $term;
+		public $year;
+		
+		public $nSupEmail;
+		public $nTeamName;
+		public $projManager;
 
 		// get a single team Project object with use of project name
 		public function getTeamProject($tProjID) {
@@ -1247,13 +1270,11 @@
 			$stmt->close();
 		}
 
-		// stored procedure to be completed
-		/*
 		public function updateTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
-
+		
 			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
 			$stmt->bind_param("ssssssss", $tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager);
-
+			
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1261,15 +1282,12 @@
 			}
 			$stmt->close();
 		}
-	 */
 
-		// stored procedure to be completed
-		/*
-		public function deleteTeamProject($tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager) {
-
-			$stmt = $GLOBALS['conn']->prepare("CALL TCABSUpdateFullTeam(?, ?, ?, ?, ?, ?, ?, ?)");
-			$stmt->bind_param("ssssssss", $tname, $supemail, $unitcode, $term, $year, $nSupEmail, $nTeamName, $projManager);
-
+		public function deleteTeamProject($projName, $tName, $cUserName, $unitCode, $term, $year) {
+		
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTEAMPROJECTDeleteTeamProject(?, ?, ?, ?, ?, ?)");
+			$stmt->bind_param("ssssss", $projName, $tName, $cUserName, $unitCode, $term, $year);
+			
 			try {
 				$stmt->execute();
 			} catch(mysqli_sql_exception $e) {
@@ -1277,7 +1295,6 @@
 			}
 			$stmt->close();
 		}
-	 */
 	}
 
 	class ProjRole {
@@ -1559,9 +1576,20 @@
 			}
 			$stmt->close();
 		}
+		
+		public function deleteTask($taskID, $projName, $teamName, $supEmail, $uCode, $term, $year) {
+		
+			$stmt = $GLOBALS['conn']->prepare("CALL TCABSTASKDeleteTask(?, ?, ?, ?, ?, ?, ?)");
+			$stmt->bind_param("sssssss", $taskID, $projName, $teamName, $supEmail, $uCode, $term, $year);
+			
+			try {
+				$stmt->execute();
+			} catch(mysqli_sql_exception $e) {
+				throw $e;
+			}
+			$stmt->close();
+		}
 
-		// to do delete
-		// because no stored procedures
 	}
 
 	class Meeting {
