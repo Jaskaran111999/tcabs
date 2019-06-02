@@ -134,6 +134,18 @@ function filterTable($query)
 				<?php }} ?>
 
 				<?php
+						$report7 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report7 = TRUE;
+					} else if($userType=='supervisor') {
+						$report7 = TRUE;
+					} }
+					if($report7 == TRUE) { ?>
+						<a href="report7.php" class="btn btn-primary">Budget Overview</a>
+				<?php } else {}?>
+
+				<?php
 						$report8 = FALSE;
 				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
 					if($userType=='convenor') {
@@ -143,6 +155,18 @@ function filterTable($query)
 					} }
 					if($report8 == TRUE) { ?>
 						<a href="report8.php" class="btn btn-primary">Team Overview</a>
+				<?php } else {}?>
+
+				<?php
+						$report9 = FALSE;
+				foreach($_SESSION['loggedUser']->uRoles as $userType => $access) {
+					if($userType=='convenor') {
+						$report9 = TRUE;
+					} else if($userType=='supervisor') {
+						$report9 = TRUE;
+					} }
+					if($report9 == TRUE) { ?>
+						<a href="report9.php" class="btn btn-primary">Unit Overview</a>
 				<?php } else {}?>
 
 				<?php
